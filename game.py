@@ -1,5 +1,4 @@
 # import turtle library
-import random
 import turtle
 turtle.tracer(0)
 
@@ -12,6 +11,7 @@ screen.bgpic("background.png")
 screen.addshape('battleship.gif')
 screen.addshape('enemy.gif')
 screen.addshape('bullet.gif')
+screen.addshape('powerup.gif')
 
 # put the battleship on the screen
 ship = turtle.Turtle()
@@ -44,16 +44,42 @@ enemy.setpos(-300, 250)
 # the speed of the enemy in a variable
 enemyspeed = 0.15
 
-# put five enemies on the screen
-# num_enemies = 5
-# enemies = []
-# for i in range(num_enemies):
-#     enemies.append(turtle.Turtle())
+
+# create the bullet
+bullet = turtle.Turtle()
+bullet.shape('bullet.gif')
+bullet.penup()
+bullet.speed(0)
+bullet.hideturtle()
+# the speed of the bullet in a variable
+bulletspeed = 1
+# give the bullet a condition (ready - shooting)
+bulletcondition = "ready"
+# function to fire the bullet
+def fire_bullet():
+    global bulletcondition  # global means variable is changable even within func.
+    if bulletcondition == "ready": # only fire a bullet when no bullet is fired
+        x = ship.xcor()
+        y = ship.ycor() + 15
+        bullet.setpos(x, y)
+        bullet.showturtle()
+        bulletcondition = "shooting"
+
+
+# function that checks collision (bullet hit alien)
+def collision(obj1, obj2): # objs being alien and bullet
+    distance = obj1.distance(obj2) # get the distance between the objects
+    if distance < 10:
+        return True
+    else:
+        return False
+
 
 # make the battleship move by listening to user input
 screen.listen()
-screen.onkeypress(ship_left, "Left") # "Left" means left arrow
-screen.onkeypress(ship_right, "Right") # "Right" means right arrow
+screen.onkeypress(ship_left, "Left")    # "Left" means left arrow
+screen.onkeypress(ship_right, "Right")  # "Right" means right arrow
+screen.onkeypress(fire_bullet, "space") # "space" means space key
 
 
 # main loop for the game
@@ -69,11 +95,24 @@ while var:
         y -= 45 # change the position of the enemy down 45 pixels
         enemyspeed *= -1 # so the enemy moves back the other way
         enemy.sety(y) # move the enemy down
-
     if enemy.xcor() < -368 :
         y = enemy.ycor()
         y -= 45
         enemyspeed *= -1 # - and - make a positive
         enemy.sety(y)
+
+    # move the bullet
+    y = bullet.ycor()
+    y += bulletspeed
+    bullet.sety(y)
+    # change bullet condition to ready when bullet gets goes past the frame
+    if bullet.ycor() > 300:
+        bulletcondition = "ready"
+    # check collision
+    if collision(enemy, bullet):
+        bullet.hideturtle() # if collision is true, hide bullet and enemy
+        enemy.hideturtle()
+        bulletcondition = "ready" # reset bullet condition so it can fire
+        bullet.setpos(0, -300) # move the bullet to bottom to avoid collision
 
     screen.update()
