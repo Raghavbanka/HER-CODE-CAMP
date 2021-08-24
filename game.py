@@ -6,52 +6,6 @@ import turtle
 import winsound
 turtle.tracer(0)
 
-# setup the start screen with instructions
-# screen = turtle.Screen()
-# screen.title("Space Invaders")
-# screen.setup(width=800, height=600)
-# screen.bgcolor("white")
-# screen.bgpic("start.background.png")
-# pen = turtle.Turtle()
-# pen.speed(0)
-# pen.color("white")
-# pen.penup()
-# pen.setpos(0, 170)
-# pen.pendown()
-# pen.write("SPACE INVADERS", False, align="center", font=("Times New Roman", 60, "bold"))
-# pen.penup()
-# pen.setpos(0, 110)
-# pen.pendown()
-# pen.write("Kill as many aliens as you can before they reach you!", False, align="center", font=("Times New Roman", 20, "italic"))
-# pen.penup()
-# pen.setpos(300, 30)
-# pen.pendown()
-# pen.write("BONUS RULES:", False, align="right", font=("Courier", 20, "bold"))
-# pen.penup()
-# pen.setpos(300, 0)
-# pen.pendown()
-# pen.write("- Once you gain 8 points, the aliens' speed increases.", False, align="right", font=("Arial", 15, ""))
-# pen.penup()
-# pen.setpos(300, -20)
-# pen.pendown()
-# pen.write("- Shoot a yellow alien to gain a power up!", False, align="right", font=("Arial", 15, ""))
-# pen.penup()
-# pen.setpos(-300, -100)
-# pen.pendown()
-# pen.write("Keyboard controls:", False, align="left", font=("Courier", 20, "bold"))
-# pen.penup()
-# pen.setpos(-300, -130)
-# pen.pendown()
-# pen.write("→         move battleship right", False, align="left", font=("Arial", 15, ""))
-# pen.penup()
-# pen.setpos(-300, -170)
-# pen.pendown()
-# pen.write("←         move battleship left", False, align="left", font=("Arial", 15, ""))
-# pen.penup()
-# pen.setpos(-300, -200)
-# pen.pendown()
-# pen.write("space     fire a bullet", False, align="left", font=("Arial", 15, ""))
-
 
 # setup the screen and add pictures
 screen = turtle.Screen()
@@ -63,6 +17,47 @@ screen.addshape('battleship.gif')
 screen.addshape('enemy.gif')
 screen.addshape('bullet.gif')
 screen.addshape('powerup.gif')
+screen.addshape('start.background.gif')
+# boolean to make the game start
+start = False
+# draw the start screen on the screen
+pen = turtle.Turtle()
+pen.speed(0)
+pen.shape('start.background.gif')
+# create the button
+button = turtle.Turtle()
+button.speed(0)
+button.hideturtle()
+button.color('#8B008B') # the color of the line it draws
+button.pencolor('white') # the color of the object
+button_x = 80
+button_y = -185
+button_length = 200
+button_width = 100
+button.penup()
+button.begin_fill()
+button.goto(button_x, button_y)
+button.goto(button_x, button_y + button_width)
+button.goto(button_x + button_length, button_y + button_width)
+button.goto(button_x + button_length, button_y)
+button.goto(button_x, button_y)
+button.end_fill()
+button.penup()
+button.goto(180, -163)
+button.pencolor("white")
+button.write("PLAY", False, align="center", font=("Courier", 40, "bold"))
+# function that the button executes
+def start_game(x, y) -> None:  # -> None means function will not return anything
+    if button_x<=x<=(button_x + button_length):
+        if button_y<=y<=(button_y+button_width):
+            global start
+            start = True
+# making the button 'clickable'
+screen.onclick(start_game)
+# this loop makes the start screen display until the button is clicked
+while not start:
+    screen.update()
+
 
 # put the battleship on the screen
 ship = turtle.Turtle()
@@ -229,7 +224,7 @@ while var:
         bulletcondition = "ready"
 
 
-    screen.update()
+    # screen.update()
 
 # setup the end screen with points
 if not var:
