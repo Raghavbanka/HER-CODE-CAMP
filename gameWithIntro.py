@@ -11,7 +11,7 @@ turtle.tracer(0)
 
 pygame.mixer.init()
 mixer.music.load("background.wav")
-pygame.mixer.music.set_volume(0.15)
+pygame.mixer.music.set_volume(0.3)
 mixer.music.play(-1)
 
 
@@ -185,7 +185,8 @@ screen.onkeypress(ship_left, "Left")    # "Left" means left arrow
 screen.onkeypress(ship_right, "Right")  # "Right" means right arrow
 screen.onkeypress(fire_bullet, "space") # "space" means space key
 
-change = True
+
+collide = False
 
 # main loop for the game
 var = True
@@ -194,12 +195,8 @@ while var and start:
     #     ori = enemyspeed
     #
     # ori = enemyspeed
-    if points % 8 == 0:
-        points_2 = points
 
-    if points_2 % 8 == 0 and points_2 != 0 and change:
-        enemyspeed += 1.5
-        change = False
+
 
     # make all 8 enemies move
     for enemy in enemies:
@@ -223,6 +220,7 @@ while var and start:
 
         # check collision
         if collision(enemy, bullet):
+            collide = True
             play_sounds("collision_sound.wav") # play sound when enemy is shot
             bullet.hideturtle()  # if collision is true, hide bullet and reset enemy
             enemy.setpos(random.randint(-300, 300), random.randint(170, 200))
@@ -239,10 +237,12 @@ while var and start:
             counter.pendown()
             counter.write(points, False, align="left", font=("Arial", 15, "bold"))
             counter.penup()
+            if points % 8 == 0 and points != 0:
+                enemyspeed += 2
 
         # check if the enemy is too low (player loses)
         if enemy.ycor() < -200:
-            play_sounds("losing_sound.wav") # play sound if the enemies win
+            play_sounds("lose.wav") # play sound if the enemies win
             var = False
 
     # move the bullet
@@ -250,8 +250,9 @@ while var and start:
     y += bulletspeed
     bullet.sety(y)
     # change bullet condition to ready when bullet gets goes past the frame
-    if bullet.ycor() > 300:
+    if bullet.ycor() > 300 or collide:
         bulletcondition = "ready"
+        collide = False
 
 
     screen.update()
@@ -260,7 +261,7 @@ while var and start:
 if not var:
     pygame.mixer.music.stop()
     turtle.clearscreen()
-    screen.bgcolor('#ed5853')
+    screen.bgpic('end.background.png')
     pen1 = turtle.Turtle()
     pen1.speed(0)
     pen1.color("white")
