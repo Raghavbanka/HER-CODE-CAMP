@@ -5,6 +5,7 @@ import random
 import turtle
 import winsound
 turtle.tracer(0)
+turtle.hideturtle()
 
 
 # setup the screen and add pictures
@@ -12,7 +13,6 @@ screen = turtle.Screen()
 screen.title("Space Invaders")
 screen.setup(width=800, height=600)
 screen.bgcolor("white")
-screen.bgpic("background.png")
 screen.addshape('battleship.gif')
 screen.addshape('enemy.gif')
 screen.addshape('bullet.gif')
@@ -46,18 +46,23 @@ button.penup()
 button.goto(180, -163)
 button.pencolor("white")
 button.write("PLAY", False, align="center", font=("Courier", 40, "bold"))
+
 # function that the button executes
 def start_game(x, y) -> None:  # -> None means function will not return anything
-    if button_x<=x<=(button_x + button_length):
-        if button_y<=y<=(button_y+button_width):
+    if button_x <= x <= (button_x + button_length):
+        if button_y <= y <= (button_y+button_width):
             global start
             start = True
+            screen.clear()
+            screen.bgpic("neon_background.png")
+
 # making the button 'clickable'
 screen.onclick(start_game)
 # this loop makes the start screen display until the button is clicked
 while not start:
     screen.update()
 
+turtle.tracer(0)
 
 # put the battleship on the screen
 ship = turtle.Turtle()
@@ -65,17 +70,18 @@ ship.shape('battleship.gif')
 ship.speed(0)
 ship.penup()
 ship.setpos(0, -263)
+ship.fire_state: False # variable to see if the battleship is firing
 # the speed of the battle ship in a variable
-shipspeed = 25
+shipspeed = 20
 # functions to move the battle ship
-def ship_left():
+def ship_left() -> None:
     x = ship.xcor()
     x -= shipspeed
     if x < -364:
         x = -364
     ship.setx(x)
 
-def ship_right():
+def ship_right() -> None:
     x = ship.xcor()
     x += shipspeed
     if x > 360:
@@ -90,18 +96,19 @@ def ship_right():
 ## enemy.speed(0)
 ## enemy.setpos(-300, 250)
 # the speed of the enemy in a variable
-enemyspeed = 0.15
+enemyspeed = 5
 # put 8 enemies on the screen
 num_enemies = 8
 enemies = [] # create a list to store the enemies
 for v in range(num_enemies): # create a for loop for the number of enemies
-    enemies.append(turtle.Turtle()) # each time, add an enemy to the list enemies
-for enemy in enemies:
+    enemy = turtle.Turtle()
+    enemy.direction = random.choice([-1, 1])
+    enemy.speed(0)
     enemy.shape('enemy.gif')
     enemy.penup()
-    enemy.speed(0)
-    # randomize the enemy location
-    enemy.setpos(random.randint(-300, 300), random.randint(170, 200))
+    enemy.is_yellow = False # variable for the yellow enemy
+    enemy.setpos(random.randint(-300, 300), random.randint(170, 200)) # randomize enemy location
+    enemies.append(enemy) # add the enemy to the list
 
 
 # create the bullet
@@ -111,19 +118,34 @@ bullet.penup()
 bullet.speed(0)
 bullet.hideturtle()
 # the speed of the bullet in a variable
-bulletspeed = 2
+bullet.bullet_speed = 20
 # give the bullet a condition (ready - shooting)
-bulletcondition = "ready"
+# bulletcondition = "ready"
+
+# function to initialize the enemy
+def initialize_enemy() -> turtle.Turtle: # function returns a turtle in form of an enemy
+    alien = turtle.Turtle()
+    alien.direction = random.choice([-1, 1])
+    alien.speed(0)
+    if random.randint(0, 10) == 0: # 1 in 10 chance that it is a yellow alien (rare)
+        enemy.shape('powerup.gif')
+        enemy.is_yellow = True # make this variable true
+    else:
+        enemy.shape('enemy.gif') # if it is a normal alien, make it false
+        enemy.is_yellow = False
+    enemy.penup()
+    enemy.setpos(random.randint(-300, 300), random.randint(170, 200))
+    return enemy
+
 # function to fire the bullet
-def fire_bullet():
-    global bulletcondition  # global means variable is changable even within func.
-    if bulletcondition == "ready": # only fire a bullet when no bullet is fired
+def fire_bullet() -> None:
+    if not ship.fire_state: # only fire a bullet when no bullet is fired (when the ship is not in a fire state)
         play_sounds("firing_sound.wav") # play a firing sound when a bullet is fired
         x = ship.xcor()
         y = ship.ycor() + 15
         bullet.setpos(x, y)
         bullet.showturtle()
-        bulletcondition = "shooting"
+        ship.fire_state = not ship.fire_state
 
 
 # create a score counter at top left
@@ -146,9 +168,9 @@ counter.penup()
 
 
 # function that checks collision (bullet hit alien)
-def collision(obj1, obj2): # objs being alien and bullet
-    distance = obj1.distance(obj2) # get the distance between the objects
-    if distance < 10:
+def collision(obj1: turtle.Turtle, obj2: turtle.Turtle) -> bool: # objs being alien and bullet(both turtles), and it returns a boolean
+    distance = obj1.distance(obj2)
+    if distance < 32:
         return True
     else:
         return False
@@ -168,38 +190,38 @@ screen.onkeypress(fire_bullet, "space") # "space" means space key
 
 # main loop for the game
 var = True
-while var:
+while var and start:
+    turtle.hideturtle()
 
     # make all 8 enemies move
     for enemy in enemies:
         # move the enemy across
         x = enemy.xcor()
-        x += enemyspeed # move the enemy 0.15 pixels
+        x += enemyspeed * enemy.direction# move the enemy
         enemy.setx(x)
         # move ALL the enemies down and back the other direction
-        if enemy.xcor() > 360 :
-            for v in enemies:
-                y = v.ycor()
+        if enemy.xcor() > 360 or enemy.xcor() < -368:
+                y = enemy.ycor()
                 y -= 45 # change the position of the enemy down 45 pixels
-                v.sety(y) # move the enemy down
-            enemyspeed *= -1  # so the enemy moves back the other way
-        if enemy.xcor() < -368 :
-            for v in enemies:
-                y = v.ycor()
-                y -= 45
-                v.sety(y)
-            enemyspeed *= -1  # - and - make a positive
+                enemy.sety(y) # move the enemy down
+                enemy.direction *= -1  # so the enemy moves back the other way
+        # check if the enemy is too low (player loses)
+        if enemy.ycor() < -200:
+            play_sounds("lose.wav")  # play sound if the enemies win
+            var = False
 
+    for enemy in enemies:
         # check collision
-        if collision(enemy, bullet):
+        if collision(enemy, bullet) and ship.fire_state: # make sure the ship is in fire state
             play_sounds("collision_sound.wav") # play sound when enemy is shot
+            if enemy.is_yellow: # if it is the yellow enemy, the ships speed increases (powerup)
+                shipspeed += 8
             bullet.hideturtle()  # if collision is true, hide bullet and reset enemy
-            enemy.setpos(random.randint(-300, 300), random.randint(170, 200))
-            bulletcondition = "ready"  # reset bullet condition so it can fire
+            enemies.remove(enemy) # remove the enemy from the list
+            enemies.append(initialize_enemy()) # add an initialized enemy to the list instead
+            ship.fire_state = not ship.fire_state  # reset bullet condition so it can fire
             bullet.setpos(0, -300)  # move the bullet to bottom to avoid collision
             points += 1  # add one point
-            if points == 8:
-                enemyspeed = 0.20
             counter.clear()  # clear (Points: *) from the screen
             counter.setpos(-380, 270)  # re-write the points on the screen
             counter.pendown()
@@ -209,22 +231,23 @@ while var:
             counter.pendown()
             counter.write(points, False, align="left", font=("Arial", 15, "bold"))
             counter.penup()
+            # if player reaches multiple of 8 points, the enemy speed increases
+            if points % 8 == 0 and points != 0:
+                enemyspeed += 0.8
 
-        # check if the enemy is too low (player loses)
-        if enemy.ycor() < -200:
-            play_sounds("losing_sound.wav") # play sound if the enemies win
-            var = False
 
-    # move the bullet
-    y = bullet.ycor()
-    y += bulletspeed
-    bullet.sety(y)
-    # change bullet condition to ready when bullet gets goes past the frame
+    # move the bullet only if the ship is in fire state
+    if ship.fire_state:
+        y = bullet.ycor()
+        y += bullet.bullet_speed
+        bullet.sety(y)
+    # change the ship's fire state to false when bullet gets goes past the frame
     if bullet.ycor() > 300:
-        bulletcondition = "ready"
+        ship.fire_state = False
+        bullet.hideturtle()
 
 
-    # screen.update()
+    screen.update()
 
 # setup the end screen with points
 if not var:
@@ -251,5 +274,9 @@ if not var:
     pen1.write(points, False, align="left", font=("Arial", 30, "bold"))
     pen1.hideturtle()
 
+count = 200000
 while not var:
     screen.update()
+    count -= 1
+    if count == 0:
+        screen.bye()
