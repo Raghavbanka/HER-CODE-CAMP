@@ -8,6 +8,7 @@ import turtle
 import winsound
 import pygame
 from pygame import mixer
+import time
 
 # turtle.fd(0)
 
@@ -295,6 +296,7 @@ if not var:
     pen1.pendown()
     pen1.write(points, font=("Arial", 30, "bold"))
     pen1.hideturtle()
+    time.sleep(5)
 
 
 # # create the button
@@ -331,11 +333,13 @@ if not var:
 #             return True
 
 count = 200000
-while not var:
-    screen.update()
-    count-=1
-    if count==0:
-        screen.bye()
+# while not var:
+#     screen.update()
+#     count-=1
+#     if count==0:
+#         screen.bye()
     # if not end_screen:
     #     screen.bye()
+
+
 
